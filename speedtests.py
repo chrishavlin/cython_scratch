@@ -1,6 +1,6 @@
 from timeit import timeit
 import numpy as np
-from cython_scratch.np_exps import process_nd_array, process_3d_array, process_2d_array
+from cython_scratch.np_exps import process_nd_array, process_3d_array, process_2d_array, process_nd_array_v2
 import pandas as pd
 import os
 
@@ -10,10 +10,12 @@ if __name__ == "__main__":
     test_calls = [
         'process_nd_array',
         'process_2d_array',
+        'process_nd_array_v2',
         'process_nd_array',
         'process_3d_array',
+        'process_nd_array_v2',
     ]
-    ndims = [2,2,3,3]
+    ndims = [2,2,2,3,3,3]
     for tst, ndims in zip(test_calls, ndims):
         if ndims == 2:
             x = np.random.random((1000, 1000))

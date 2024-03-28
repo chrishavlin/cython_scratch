@@ -61,15 +61,15 @@ cdef void _process_1d_memview(np.float64_t[:] x1d, np.float64_t[:] x1dout, int n
 @cython.wraparound(False)
 def process_nd_array(np.ndarray x):
     cdef int nsize, ndim, idim
-    cdef np.ndarray[np.float64_t, ndim=1] x1dview, xout
+    cdef np.ndarray[np.float64_t, ndim=1] x1d, xout
     cdef np.int64_t[:] xshape
 
-    x1dview = x.reshape(-1)
-    nsize = x1dview.size
+    x1d = x.reshape(-1)
+    nsize = x1d.size
 
     # need to provide an initialize array to fill
-    xout = np.full((x1dview.size,), np.nan, dtype=np.float64)
-    _process_1d_memview(x1dview, xout, nsize)
+    xout = np.full((x1d.size,), np.nan, dtype=np.float64)
+    _process_1d_memview(x1d, xout, nsize)
 
     ndim = x.ndim
     if ndim == 1:
@@ -82,3 +82,27 @@ def process_nd_array(np.ndarray x):
     for idim in range(ndim):
         xshape[idim] = x.shape[idim]
     return xout.reshape(xshape)
+
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def process_nd_array_v2(np.ndarray x):
+    cdef int nsize, ndim, idim
+    cdef np.ndarray[np.float64_t, ndim=1] x1d, xout1d
+    cdef np.int64_t[:] xshape
+
+    x1d = x.reshape(-1)
+    nsize = x1d.size
+
+    # create the array to fill as an nd array,
+    # pass a reshaped view down
+    ndim = x.ndim
+    xshape = np.zeros((ndim,), dtype=np.int64)
+    for idim in range(ndim):
+        xshape[idim] = x.shape[idim]
+    xout = np.full(xshape, np.nan, dtype=np.float64)
+    xout1d = xout.reshape(-1)
+
+    _process_1d_memview(x1d, xout1d, nsize)
+
+    return xout
