@@ -1,24 +1,84 @@
 cimport numpy as np
 cimport cython
+import numpy as np
 
-cpdef float do_a_thing(float a):
-    return a * 2.0
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef void _process_2d_manual(np.float64_t[:,:] x, np.float64_t[:,:] xout):
+    cdef int i, j, ni, nj
+    ni = x.shape[0]
+    nj = x.shape[1]
+    for i in range(ni):
+        for j in range(nj):
+            xout[i,j] = x[i,j] * 2.0
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def process_2d_array(np.float64_t[:,:] x):
-    cdef int i, j, ni, nj
-    cdef np.float64_t sumval
+    cdef np.float64_t[:,:] xout
+    xout = np.full((x.shape[0], x.shape[1]), np.nan, dtype=np.float64)
+    _process_2d_manual(x, xout)
+    return xout
+
+
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef void _process_3d_manual(np.float64_t[:,:,:] x, np.float64_t[:,:,:] xout):
+    cdef int i, j, ni, nj, k, nk
     ni = x.shape[0]
     nj = x.shape[1]
+    nk = x.shape[2]
+    for i in range(ni):
+        for j in range(nj):
+            for k in range(nk):
+                xout[i,j,k] = x[i,j,k] * 2.0
 
-    sumval = 0.0
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def process_3d_array(np.float64_t[:,:,:] x):
+    cdef np.float64_t[:,:,:] xout
+    xout = np.full((x.shape[0], x.shape[1], x.shape[2]), np.nan, dtype=np.float64)
+    _process_3d_manual(x, xout)
+    return xout
 
-    with nogil:
-        for i in range(ni):
-            for j in range(nj):
-                sumval += x[i, j]
 
-    return sumval
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef void _process_1d_memview(np.float64_t[:] x1d, np.float64_t[:] x1dout, int n) noexcept nogil:
+    # assumes x1d, x1dout already flattened
+    cdef int i
+    for i in range(n):
+        x1dout[i] = x1d[i] * 2.0
 
+
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def process_nd_array(np.ndarray x):
+    cdef int nsize, ndim, idim
+    cdef np.ndarray[np.float64_t, ndim=1] x1dview, xout
+    cdef np.int64_t[:] xshape
+
+    x1dview = x.reshape(-1)
+    nsize = x1dview.size
+
+    # need to provide an initialize array to fill
+    xout = np.full((x1dview.size,), np.nan, dtype=np.float64)
+    _process_1d_memview(x1dview, xout, nsize)
+
+    ndim = x.ndim
+    if ndim == 1:
+        return xout
+
+    # need to reshape: just using xout.reshape(x.shape) fails
+    # because the tuple unpacking is not supported in
+    # cython. so, build an array from the tuple and use that.
+    xshape = np.zeros((ndim,), dtype=np.int64)
+    for idim in range(ndim):
+        xshape[idim] = x.shape[idim]
+    return xout.reshape(xshape)
