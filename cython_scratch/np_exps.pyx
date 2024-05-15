@@ -1,3 +1,5 @@
+from libc.math cimport isfinite
+
 cimport numpy as np
 cimport cython
 import numpy as np
@@ -106,3 +108,27 @@ def process_nd_array_v2(np.ndarray x):
     _process_1d_memview(x1d, xout1d, nsize)
 
     return xout
+
+
+def sum_no_finite(ntimes):
+    sum_n_times(ntimes)
+
+def sum_check_finite(ntimes):
+    sum_n_times_w_finite(ntimes)
+
+cdef void sum_n_times(unsigned long long n) noexcept nogil:
+    cdef np.float64_t val
+    cdef unsigned long long i
+
+    val = 0.0
+    for i in range(n):
+        val += 1.0
+
+cdef void sum_n_times_w_finite(unsigned long long n) noexcept nogil:
+    cdef np.float64_t val
+    cdef unsigned long long i
+
+    val = 0.0
+    for i in range(n):
+        if isfinite(val):
+            val += 1.0
