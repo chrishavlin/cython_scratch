@@ -4,6 +4,9 @@ cimport numpy as np
 cimport cython
 import numpy as np
 
+cdef extern from "numpy/npy_math.h":
+    double NPY_PI
+
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -132,3 +135,36 @@ cdef void sum_n_times_w_finite(unsigned long long n) noexcept nogil:
     for i in range(n):
         if isfinite(val):
             val += 1.0
+
+
+@cython.cdivision(True)
+def compare_modulo_with_pi(np.float64_t test_val):
+
+    cdef double NPY_2PI = 2 * NPY_PI
+    cdef np.float64_t other_2pi = 2 * np.pi
+
+    cdef np.float64_t result_1, result_2, result_3
+
+    with nogil:
+        result_1 = test_val % NPY_2PI
+
+    result_2 = test_val % other_2pi
+    result_3 = test_val % NPY_2PI
+
+    return result_1, result_2, result_3
+
+@cython.cdivision(False)
+def compare_modulo_with_pi_no_c_div(np.float64_t test_val):
+
+    cdef double NPY_2PI = 2 * NPY_PI
+    cdef np.float64_t other_2pi = 2 * np.pi
+
+    cdef np.float64_t result_1, result_2, result_3
+
+    with nogil:
+        result_1 = test_val % NPY_2PI
+
+    result_2 = test_val % other_2pi
+    result_3 = test_val % NPY_2PI
+
+    return result_1, result_2, result_3
