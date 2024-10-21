@@ -22,7 +22,7 @@ linestyles = [
 
 display_it = [True for _ in range(len(labels))]
 display_it[2] = False
-display_it[3] = False
+# display_it[3] = False
 
 lws = [2, 2, 1, 2, 2, 2]
 
