@@ -174,7 +174,9 @@ def compare_rem_mod(np.float64_t test_val):
         result_4 = remainderf(test_val, twoPI)
         result_5 = fmod(test_val + twoPI, twoPI)
 
-    return result_1, result_2, result_3, result_4
+    result_6 = test_val % (2 * np.pi)
+
+    return result_1, result_2, result_3, result_4, result_5, result_6
 
 
 @cython.cdivision(False)
