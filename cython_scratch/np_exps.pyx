@@ -1,4 +1,4 @@
-from libc.math cimport isfinite
+from libc.math cimport isfinite, fmod, fabs, remainderf
 
 cimport numpy as np
 cimport cython
@@ -157,6 +157,25 @@ def compare_modulo_with_pi(np.float64_t test_val):
         result_4 = test_val % twoPI
 
     return result_1, result_2, result_3, result_4
+
+
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def compare_rem_mod(np.float64_t test_val):
+
+    cdef np.float64_t twoPI = 2 * NPY_PI
+    cdef np.float64_t result_1, result_2, result_3, result_4, result_5
+
+    with nogil:
+        result_1 = test_val % twoPI
+        result_2 = fmod(test_val, twoPI)
+        result_3 = fmod(fabs(test_val), twoPI)
+        result_4 = remainderf(test_val, twoPI)
+        result_5 = fmod(test_val + twoPI, twoPI)
+
+    return result_1, result_2, result_3, result_4
+
 
 @cython.cdivision(False)
 @cython.boundscheck(False)
